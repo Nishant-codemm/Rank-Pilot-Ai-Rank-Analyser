@@ -2,9 +2,21 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Target, Plus, RefreshCw, Trash2, TrendingUp, TrendingDown, Minus, ExternalLink, Clock, Loader2, X, Search, Globe, AlertCircle, Eye, EyeOff, Filter, ArrowUpDown } from "lucide-react";
 import { api } from "../context/Appcontext";
-import type { RankingData } from "../utils/localSeoData";
-
-type KeywordItem = RankingData;
+type KeywordItem = {
+    _id: string;
+    keyword: string;
+    url: string;
+    domain: string;
+    currentPosition: number | null;
+    currentPage: number | null;
+    bestPosition: number | null;
+    positionChange: number;
+    active: boolean;
+    lastChecked: string | null;
+    status: string;
+    createdAt?: string;
+    competitors?: any[];
+};
 
 export default function RankTracker() {
     const [keywords, setKeywords] = useState<KeywordItem[]>([]);

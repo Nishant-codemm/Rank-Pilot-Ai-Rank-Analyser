@@ -1,8 +1,4 @@
-import dns from "dns";
 import mongoose from "mongoose";
-
-// Use a public resolver for Atlas SRV lookups when the default DNS path fails.
-dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 const connectDB = async () => {
     try {
@@ -15,7 +11,8 @@ const connectDB = async () => {
         mongoose.connection.on("error", (error) => console.error("MongoDB connection error:", error));
 
         await mongoose.connect(uri, {
-            serverSelectionTimeoutMS: 5000,
+            serverSelectionTimeoutMS: 10000,
+            family: 4, // Force IPv4
         });
     } catch (error) {
         console.error("MongoDB connection failed:", error);
