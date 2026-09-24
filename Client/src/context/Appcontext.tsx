@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import axios from "axios";
 
@@ -32,7 +32,7 @@ const getStoredUser = () => {
 
   try {
     return JSON.parse(storedUser) as User;
-  } catch {
+  } catch { 
     localStorage.removeItem("user");
     return null;
   }
@@ -118,6 +118,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       logout();
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      getProfile().catch(() => logout());
+    }
+  }, []);
 
   const value = {
     user,

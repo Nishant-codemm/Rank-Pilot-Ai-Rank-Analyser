@@ -3,8 +3,19 @@ import { createAnalysisPayload } from "../utils/seoGenerators.js";
 
 export const listAnalyses = async (req, res) => {
   try {
-    const analyses = await Analysis.find({ userId: req.user.id }).sort({ createdAt: -1 });
-    res.status(200).json({ analyses });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [analyses, total] = await Promise.all([
+      Analysis.find({ userId: req.user.id }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Analysis.countDocuments({ userId: req.user.id }),
+    ]);
+
+    res.status(200).json({ 
+      analyses,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     console.error("List analyses error:", error);
     res.status(500).json({ message: "Unable to load analyses." });
@@ -18,11 +29,12 @@ export const createAnalysis = async (req, res) => {
       return res.status(400).json({ message: "URL is required." });
     }
 
-    const analysis = await Analysis.create(createAnalysisPayload(url, req.user.id));
+    const payload = await createAnalysisPayload(url, req.user.id);
+    const analysis = await Analysis.create(payload);
     res.status(201).json({ analysis });
   } catch (error) {
     console.error("Create analysis error:", error);
-    res.status(400).json({ message: "Unable to create analysis. Please enter a valid URL." });
+    res.status(400).json({ message: error.message || "Unable to create analysis. Please enter a valid URL." });
   }
 };
 

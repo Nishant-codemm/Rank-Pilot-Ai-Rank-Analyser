@@ -31,9 +31,9 @@ export default function History() {
     const fetchAnalyses = async () => {
         setLoading(true);
         try {
-            const response = await api.get("/api/analyses");
+            const response = await api.get(`/api/analyses?page=${page}`);
             setAnalyses(response.data.analyses);
-            setTotalPages(1);
+            setTotalPages(response.data.pagination?.totalPages || 1);
         } catch (error) {
             console.error("Load analyses error:", error);
             setAnalyses([]);

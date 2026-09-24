@@ -22,7 +22,7 @@ export default function RankTracker() {
 
     const fetchKeywords = async () => {
         try {
-            const response = await api.get("/api/rankings");
+            const response = await api.get("/api/rankings?limit=100");
             setKeywords(response.data.rankings);
         } catch (error) {
             console.error("Load rankings error:", error);

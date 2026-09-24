@@ -47,7 +47,11 @@ export default function Dashboard() {
     const completedAnalyses = analyses.filter((a) => a.status === "completed");
     const avgScore = completedAnalyses.length ? Math.round(completedAnalyses.reduce((sum, a) => sum + a.overallScore, 0) / completedAnalyses.length) : 0;
     const plan = user?.plan || "free";
-    const scansLeft = plan === "free" ? Math.max(0, 5 - completedAnalyses.length) : "Unlimited";
+    const today = new Date().toDateString();
+    const todayScans = completedAnalyses.filter(
+        (a) => new Date(a.createdAt).toDateString() === today
+    ).length;
+    const scansLeft = plan === "free" ? Math.max(0, 5 - todayScans) : "Unlimited";
     const strongestCategory = completedAnalyses.length
         ? [
               { label: "SEO", value: Math.round(completedAnalyses.reduce((sum, a) => sum + a.categories.seo, 0) / completedAnalyses.length) },

@@ -3,8 +3,19 @@ import { createRankingPayload } from "../utils/seoGenerators.js";
 
 export const listRankings = async (req, res) => {
   try {
-    const rankings = await Ranking.find({ userId: req.user.id }).sort({ createdAt: -1 });
-    res.status(200).json({ rankings });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [rankings, total] = await Promise.all([
+      Ranking.find({ userId: req.user.id }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Ranking.countDocuments({ userId: req.user.id }),
+    ]);
+
+    res.status(200).json({ 
+      rankings,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+    });
   } catch (error) {
     console.error("List rankings error:", error);
     res.status(500).json({ message: "Unable to load rankings." });
@@ -18,11 +29,12 @@ export const createRanking = async (req, res) => {
       return res.status(400).json({ message: "Keyword and URL are required." });
     }
 
-    const ranking = await Ranking.create(createRankingPayload({ keyword, url, userId: req.user.id }));
+    const payload = await createRankingPayload({ keyword, url, userId: req.user.id });
+    const ranking = await Ranking.create(payload);
     res.status(201).json({ ranking });
   } catch (error) {
     console.error("Create ranking error:", error);
-    res.status(400).json({ message: "Unable to create ranking. Please enter a valid keyword and URL." });
+    res.status(400).json({ message: error.message || "Unable to create ranking. Please enter a valid keyword and URL." });
   }
 };
 
@@ -67,13 +79,22 @@ export const refreshRanking = async (req, res) => {
     }
 
     const previousPosition = ranking.currentPosition;
-    const nextPosition = previousPosition ? Math.max(1, previousPosition - 1) : 18;
+    // Simulate rank fluctuation instead of always improving
+    const fluctuation = Math.floor(Math.random() * 5) - 2; // -2 to +2
+    const nextPosition = previousPosition ? Math.max(1, previousPosition + fluctuation) : 18;
+    
     ranking.currentPosition = nextPosition;
     ranking.currentPage = Math.ceil(nextPosition / 10);
     ranking.bestPosition = ranking.bestPosition ? Math.min(ranking.bestPosition, nextPosition) : nextPosition;
     ranking.positionChange = previousPosition ? previousPosition - nextPosition : 0;
     ranking.lastChecked = new Date();
     ranking.status = "completed";
+    
+    // maintain max history of 30 days
+    if (ranking.rankHistory.length >= 30) {
+      ranking.rankHistory.shift();
+    }
+    
     ranking.rankHistory.push({
       date: new Date(),
       position: nextPosition,

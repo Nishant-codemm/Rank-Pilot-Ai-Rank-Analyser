@@ -37,10 +37,6 @@ export default function Analyze() {
         ];
 
         try {
-            await new Promise((resolve) => {
-                const timer = window.setTimeout(resolve, 7000);
-                timersRef.current.push(timer);
-            });
             const response = await api.post("/api/analyses", { url: targetUrl });
             setAnalyzing(false);
             navigate(`/report/${response.data.analysis._id}`);

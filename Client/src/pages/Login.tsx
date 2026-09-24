@@ -116,7 +116,11 @@ export default function Login({ state }: { state: string }) {
 
                 <p className="text-center text-sm text-muted-foreground mt-6">
                     {isLoginState ? "Don't have an account?" : "Already have an account?"}
-                    <button onClick={() => setIsLoginState((prev) => !prev)} className="text-primary hover:underline font-medium pl-1">
+                    <button onClick={() => {
+                        const newState = !isLoginState;
+                        setIsLoginState(newState);
+                        navigate(newState ? "/login" : "/register");
+                    }} className="text-primary hover:underline font-medium pl-1">
                         {isLoginState ? "Sign up" : "Sign in"}
                     </button>
                 </p>
